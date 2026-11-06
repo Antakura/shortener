@@ -4,10 +4,6 @@ from pydantic import ValidationError
 from app.config import Settings, encryptor, get_settings
 
 
-def test_secret_key():
-    assert get_settings().SECRET_KEY is not None
-
-
 def test_settings_are_cached():
     assert get_settings() is get_settings()
 

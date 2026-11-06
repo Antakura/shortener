@@ -9,6 +9,7 @@ from app.models import Url, UrlCreate, UrlPublic
 VALID_URL = "https://example.com/some/very/long/path?query=1"
 ANOTHER_URL = "https://other.example.com/page"
 INVALID_SHORT_CODE = "!!!"
+TEST_BASE_URL = "http://127.0.0.1:8000"
 
 
 class TestCreateUrl:
@@ -20,7 +21,7 @@ class TestCreateUrl:
         assert body["full_url"] == VALID_URL
         assert isinstance(body["id"], int)
         assert body["short_code"] == encryptor.encode(body["id"])
-        assert body["short_url"] == f"http://127.0.0.1:8000/url/{body['short_code']}"
+        assert body["short_url"] == f"{TEST_BASE_URL}/url/{body['short_code']}"
 
     def test_url_is_persisted(self, client, db_engine):
         client.post("/urls/", json={"full_url": VALID_URL})
@@ -76,7 +77,7 @@ class TestModels:
     def test_url_public_short_url(self):
         public = UrlPublic(id=42, full_url=VALID_URL)
 
-        assert public.short_url == f"http://127.0.0.1:8000/url/{encryptor.encode(42)}"
+        assert public.short_url == f"{TEST_BASE_URL}/url/{encryptor.encode(42)}"
 
     def test_url_create_requires_full_url(self):
         with pytest.raises(ValidationError):

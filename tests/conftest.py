@@ -1,6 +1,7 @@
 import os
 
 os.environ.setdefault("SECRET_KEY", "test-secret-key")
+os.environ.setdefault("BASE_URL", "http://127.0.0.1:8000")
 
 import pytest
 from fastapi.testclient import TestClient

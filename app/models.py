@@ -1,4 +1,4 @@
-from pydantic import computed_field
+from pydantic import computed_field, field_validator, HttpUrl
 from sqlmodel import Field, SQLModel
 
 from app.config import encryptor, get_settings
@@ -28,3 +28,9 @@ class UrlPublic(UrlBase):
 
 class UrlCreate(UrlBase):
     full_url: str
+
+    @field_validator('full_url', mode="before")
+    @classmethod
+    def validate_full_url(cls, url_value):
+        validated_url = HttpUrl(url_value)
+        return str(validated_url)

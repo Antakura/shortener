@@ -13,7 +13,7 @@ def on_startup():
     create_tables()
 
 
-@app.post("/urls/", response_model=UrlPublic, status_code=status.HTTP_201_CREATED)
+@app.post("/", response_model=UrlPublic, status_code=status.HTTP_201_CREATED)
 def create_url(url: UrlCreate, session: SessionDep):
     db_url = Url.model_validate(url)
     session.add(db_url)
@@ -22,8 +22,8 @@ def create_url(url: UrlCreate, session: SessionDep):
     return db_url
 
 
-@app.get("/url/{short_url}", response_model=UrlPublic)
-def fetch_ful_url(short_url: str, session: SessionDep):
+@app.get("/{short_url}", response_model=UrlPublic)
+def fetch_full_url(short_url: str, session: SessionDep):
     decoded = encryptor.decode(short_url)
     if not decoded:
         raise HTTPException(

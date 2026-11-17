@@ -23,7 +23,7 @@ def create_url(url: UrlCreate, session: SessionDep):
 
 
 @app.get("/url/{short_url}", response_model=UrlPublic)
-def fetch_ful_url(short_url: str, session: SessionDep):
+def fetch_full_url(short_url: str, session: SessionDep):
     decoded = encryptor.decode(short_url)
     if not decoded:
         raise HTTPException(

@@ -8,6 +8,8 @@ from app.models import Url, UrlCreate, UrlPublic
 
 VALID_URL = "https://example.com/some/very/long/path?query=1"
 ANOTHER_URL = "https://other.example.com/page"
+INVALID_URL = "ftp://example.com/file"
+NOT_A_URL = "Hello, World"
 INVALID_SHORT_CODE = "!!!"
 TEST_BASE_URL = "http://127.0.0.1:8000"
 
@@ -37,11 +39,18 @@ class TestCreateUrl:
         assert response.status_code == status.HTTP_422_UNPROCESSABLE_CONTENT
 
     def test_urls_get_unique_ids_and_short_codes(self, client):
-        first = client.post("/urls/", json={"full_url": VALID_URL}).json()
-        second = client.post("/urls/", json={"full_url": ANOTHER_URL}).json()
+        first_url_response = client.post("/urls/", json={"full_url": VALID_URL}).json()
+        second_url_response = client.post("/urls/", json={"full_url": ANOTHER_URL}).json()
 
-        assert first["id"] != second["id"]
-        assert first["short_code"] != second["short_code"]
+        assert first_url_response["id"] != second_url_response["id"]
+        assert first_url_response["short_code"] != second_url_response["short_code"]
+
+    def test_invalid_url_returns_422(self, client):
+        first_response = client.post("/urls/", json={"full_url": INVALID_URL})
+        second_response = client.post("/urls/", json={"full_url": NOT_A_URL})
+
+        assert first_response.status_code == status.HTTP_422_UNPROCESSABLE_CONTENT
+        assert second_response.status_code == status.HTTP_422_UNPROCESSABLE_CONTENT
 
 
 class TestFetchUrl:

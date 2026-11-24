@@ -1,3 +1,5 @@
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI, HTTPException, status
 from fastapi.responses import RedirectResponse
 
@@ -5,12 +7,14 @@ from app.config import encryptor
 from app.database import SessionDep, create_tables
 from app.models import Url, UrlCreate, UrlPublic
 
-app = FastAPI()
 
-
-@app.on_event("startup")
-def on_startup():
+@asynccontextmanager
+async def lifespan(_app: FastAPI):
     create_tables()
+    yield
+
+
+app = FastAPI(lifespan=lifespan)
 
 
 @app.post("/urls/", response_model=UrlPublic, status_code=status.HTTP_201_CREATED)
@@ -22,7 +26,13 @@ def create_url(url: UrlCreate, session: SessionDep):
     return db_url
 
 
-@app.get("/url/{short_url}", response_model=UrlPublic)
+@app.get(
+    "/url/{short_url}",
+    status_code=status.HTTP_302_FOUND,
+    responses={
+        status.HTTP_404_NOT_FOUND: {"description": "Invalid short url or URL not found"}
+    },
+)
 def fetch_full_url(short_url: str, session: SessionDep):
     decoded = encryptor.decode(short_url)
     if not decoded:

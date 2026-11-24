@@ -3,8 +3,9 @@ from typing import Annotated
 from fastapi import Depends
 from sqlmodel import Session, SQLModel, create_engine
 
-sqlite_file_name = "db.sqlite3"
-engine = create_engine(f"sqlite:///{sqlite_file_name}")
+from app.config import get_settings
+
+engine = create_engine(f"sqlite:///{get_settings().DATABASE_NAME}")
 
 
 def create_tables():

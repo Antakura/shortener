@@ -17,7 +17,7 @@ async def lifespan(_app: FastAPI):
 app = FastAPI(lifespan=lifespan)
 
 
-@app.post("/urls/", response_model=UrlPublic, status_code=status.HTTP_201_CREATED)
+@app.post("/", response_model=UrlPublic, status_code=status.HTTP_201_CREATED)
 def create_url(url: UrlCreate, session: SessionDep):
     db_url = Url.model_validate(url)
     session.add(db_url)
@@ -27,7 +27,7 @@ def create_url(url: UrlCreate, session: SessionDep):
 
 
 @app.get(
-    "/url/{short_url}",
+    "/{short_url}",
     status_code=status.HTTP_302_FOUND,
     responses={
         status.HTTP_404_NOT_FOUND: {"description": "Invalid short url or URL not found"}

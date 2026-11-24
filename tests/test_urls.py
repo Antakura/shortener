@@ -16,17 +16,17 @@ TEST_BASE_URL = "http://127.0.0.1:8000"
 
 class TestCreateUrl:
     def test_returns_201_with_url_public(self, client):
-        response = client.post("/urls/", json={"full_url": VALID_URL})
+        response = client.post("/", json={"full_url": VALID_URL})
 
         assert response.status_code == status.HTTP_201_CREATED
         body = response.json()
         assert body["full_url"] == VALID_URL
         assert isinstance(body["id"], int)
         assert body["short_code"] == encryptor.encode(body["id"])
-        assert body["short_url"] == f"{TEST_BASE_URL}/url/{body['short_code']}"
+        assert body["short_url"] == f"{TEST_BASE_URL}/{body['short_code']}"
 
     def test_url_is_persisted(self, client, db_engine):
-        client.post("/urls/", json={"full_url": VALID_URL})
+        client.post("/", json={"full_url": VALID_URL})
 
         with Session(db_engine) as session:
             urls = session.exec(select(Url)).all()
@@ -34,22 +34,20 @@ class TestCreateUrl:
         assert [url.full_url for url in urls] == [VALID_URL]
 
     def test_missing_full_url_returns_422(self, client):
-        response = client.post("/urls/", json={})
+        response = client.post("/", json={})
 
         assert response.status_code == status.HTTP_422_UNPROCESSABLE_CONTENT
 
     def test_urls_get_unique_ids_and_short_codes(self, client):
-        first_url_response = client.post("/urls/", json={"full_url": VALID_URL}).json()
-        second_url_response = client.post(
-            "/urls/", json={"full_url": ANOTHER_URL}
-        ).json()
+        first_url_response = client.post("/", json={"full_url": VALID_URL}).json()
+        second_url_response = client.post("/", json={"full_url": ANOTHER_URL}).json()
 
         assert first_url_response["id"] != second_url_response["id"]
         assert first_url_response["short_code"] != second_url_response["short_code"]
 
     def test_invalid_url_returns_422(self, client):
-        first_response = client.post("/urls/", json={"full_url": INVALID_URL})
-        second_response = client.post("/urls/", json={"full_url": NOT_A_URL})
+        first_response = client.post("/", json={"full_url": INVALID_URL})
+        second_response = client.post("/", json={"full_url": NOT_A_URL})
 
         assert first_response.status_code == status.HTTP_422_UNPROCESSABLE_CONTENT
         assert second_response.status_code == status.HTTP_422_UNPROCESSABLE_CONTENT
@@ -57,15 +55,15 @@ class TestCreateUrl:
 
 class TestFetchUrl:
     def test_redirects_to_original_url(self, client):
-        created = client.post("/urls/", json={"full_url": VALID_URL}).json()
+        created = client.post("/", json={"full_url": VALID_URL}).json()
 
-        response = client.get(f"/url/{created['short_code']}", follow_redirects=False)
+        response = client.get(f"/{created['short_code']}", follow_redirects=False)
 
         assert response.status_code == status.HTTP_302_FOUND
         assert response.headers["location"] == VALID_URL
 
     def test_invalid_short_code_returns_404(self, client):
-        response = client.get(f"/url/{INVALID_SHORT_CODE}", follow_redirects=False)
+        response = client.get(f"/{INVALID_SHORT_CODE}", follow_redirects=False)
 
         assert response.status_code == status.HTTP_404_NOT_FOUND
         assert response.json()["detail"] == "Invalid short url"
@@ -73,7 +71,7 @@ class TestFetchUrl:
     def test_unknown_url_returns_404(self, client):
         code = encryptor.encode(999_999)
 
-        response = client.get(f"/url/{code}", follow_redirects=False)
+        response = client.get(f"/{code}", follow_redirects=False)
 
         assert response.status_code == status.HTTP_404_NOT_FOUND
         assert response.json()["detail"] == "URL not found"
@@ -88,7 +86,7 @@ class TestModels:
     def test_url_public_short_url(self):
         public = UrlPublic(id=42, full_url=VALID_URL)
 
-        assert public.short_url == f"{TEST_BASE_URL}/url/{encryptor.encode(42)}"
+        assert public.short_url == f"{TEST_BASE_URL}/{encryptor.encode(42)}"
 
     def test_url_create_requires_full_url(self):
         with pytest.raises(ValidationError):

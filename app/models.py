@@ -23,7 +23,7 @@ class UrlPublic(UrlBase):
     @computed_field
     @property
     def short_url(self) -> str:
-        return f"{get_settings().BASE_URL}/url/{self.short_code}"
+        return f"{get_settings().BASE_URL}/{self.short_code}"
 
 
 class UrlCreate(UrlBase):

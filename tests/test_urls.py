@@ -40,7 +40,9 @@ class TestCreateUrl:
 
     def test_urls_get_unique_ids_and_short_codes(self, client):
         first_url_response = client.post("/urls/", json={"full_url": VALID_URL}).json()
-        second_url_response = client.post("/urls/", json={"full_url": ANOTHER_URL}).json()
+        second_url_response = client.post(
+            "/urls/", json={"full_url": ANOTHER_URL}
+        ).json()
 
         assert first_url_response["id"] != second_url_response["id"]
         assert first_url_response["short_code"] != second_url_response["short_code"]
